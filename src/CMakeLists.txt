@@ -436,26 +436,26 @@ if(FLB_BINARY)
       DESTINATION "${FLB_INSTALL_BINDIR}")
   endif()
 
-  # Detect init system, install upstart, systemd or init.d script
-  if(IS_DIRECTORY /lib/systemd/system)
-    set(FLB_SYSTEMD_SCRIPT "${PROJECT_SOURCE_DIR}/init/${FLB_OUT_NAME}.service")
-    configure_file(
-      "${PROJECT_SOURCE_DIR}/init/systemd.in"
-      ${FLB_SYSTEMD_SCRIPT}
-      )
-    install(FILES ${FLB_SYSTEMD_SCRIPT} COMPONENT binary DESTINATION /lib/systemd/system)
-    install(DIRECTORY DESTINATION ${FLB_INSTALL_CONFDIR} COMPONENT binary)
-  elseif(IS_DIRECTORY /usr/share/upstart)
-    set(FLB_UPSTART_SCRIPT "${PROJECT_SOURCE_DIR}/init/${FLB_OUT_NAME}.conf")
-    configure_file(
-      "${PROJECT_SOURCE_DIR}/init/upstart.in"
-      ${FLB_UPSTART_SCRIPT}
-      )
-    install(FILES ${FLB_UPSTART_SCRIPT} COMPONENT binary DESTINATION /etc/init)
-    install(DIRECTORY DESTINATION COMPONENT binary ${FLB_INSTALL_CONFDIR})
-  else()
-    # FIXME: should we support Sysv init script ?
-  endif()
+  # # Detect init system, install upstart, systemd or init.d script
+  # if(IS_DIRECTORY /lib/systemd/system)
+  #   set(FLB_SYSTEMD_SCRIPT "${PROJECT_SOURCE_DIR}/init/${FLB_OUT_NAME}.service")
+  #   configure_file(
+  #     "${PROJECT_SOURCE_DIR}/init/systemd.in"
+  #     ${FLB_SYSTEMD_SCRIPT}
+  #     )
+  #   install(FILES ${FLB_SYSTEMD_SCRIPT} COMPONENT binary DESTINATION /lib/systemd/system)
+  #   install(DIRECTORY DESTINATION ${FLB_INSTALL_CONFDIR} COMPONENT binary)
+  # elseif(IS_DIRECTORY /usr/share/upstart)
+  #   set(FLB_UPSTART_SCRIPT "${PROJECT_SOURCE_DIR}/init/${FLB_OUT_NAME}.conf")
+  #   configure_file(
+  #     "${PROJECT_SOURCE_DIR}/init/upstart.in"
+  #     ${FLB_UPSTART_SCRIPT}
+  #     )
+  #   install(FILES ${FLB_UPSTART_SCRIPT} COMPONENT binary DESTINATION /etc/init)
+  #   install(DIRECTORY DESTINATION COMPONENT binary ${FLB_INSTALL_CONFDIR})
+  # else()
+  #   # FIXME: should we support Sysv init script ?
+  # endif()
 
   install(FILES
     "${PROJECT_SOURCE_DIR}/conf/fluent-bit.conf"
