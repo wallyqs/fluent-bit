@@ -100,8 +100,11 @@ static int flb_ws_sendDataFrameHeader(struct flb_upstream_conn *u_conn,
     char masking_key[4] = {0x12, 0x34, 0x56, 0x78};
     unsigned long long payloadSize = bytes;
 
+    flb_info("[out_ws_nats] A");
     flb_ws_mask((char *)data, payloadSize, masking_key);
+    flb_info("[out_ws_nats] AB");
     if (payloadSize < 126) {
+    flb_info("[out_ws_nats] ABC");
         data_frame_head = (char *)flb_malloc(6);
         if (!data_frame_head) {
             flb_errno();
@@ -153,7 +156,9 @@ static int flb_ws_sendDataFrameHeader(struct flb_upstream_conn *u_conn,
         data_frame_head[13] = masking_key[3];
         data_frame_head_len = 14;
     }
+    flb_info("[out_ws_nats] ABCD");
     ret = flb_io_net_write(u_conn, data_frame_head, data_frame_head_len, &bytes_sent);
+    flb_info("[out_ws_nats] ABCDE");
     if (ret == -1) {
         flb_error("[out_ws_nats] could not write dataframe header");
         goto error;
@@ -197,6 +202,8 @@ static void cb_ws_flush(const void *data, size_t bytes,
 {
     int ret = -1;
     size_t bytes_sent;
+    char *connect_proto;
+    size_t connect_proto_len;
     flb_sds_t json = NULL;
     struct flb_upstream *u;
     struct flb_upstream_conn *u_conn;
@@ -236,6 +243,7 @@ static void cb_ws_flush(const void *data, size_t bytes,
 
     /* Data format process*/
     if (ctx->out_format != FLB_PACK_JSON_FORMAT_NONE) {
+        flb_info("[out_ws_nats] not format none!!!!!!!!!!!");
         json = flb_pack_msgpack_to_json_format(data, bytes,
                                                ctx->out_format,
                                                ctx->json_date_format,
@@ -248,18 +256,54 @@ static void cb_ws_flush(const void *data, size_t bytes,
         }
     }
 
-    // Send NATS CONNECT
-    /* ret = flb_io_net_write(u_conn, */
-    /*                        NATS_CONNECT, */
-    /*                        sizeof(NATS_CONNECT) - 1, */
-    /*                        &bytes_sent); */
+    flb_info("[out_ws_nats] sending connect!!!");
+    if (ctx->out_format == FLB_PACK_JSON_FORMAT_NONE) {
+        flb_info("[out_ws_nats] ---------------------");
+    }
+
+    flb_info("[out_ws_nats] one!");
+    connect_proto = flb_malloc(sizeof("connect {}\r\n") - 1);
+    flb_info("[out_ws_nats] onee!");
+    connect_proto_len = snprintf(connect_proto, sizeof("connect {}\r\n") - 1, "connect {}\r\n");
+    // connect_proto_len = 
+    flb_info("[out_ws_nats] oneee!");
+
+    ret = flb_ws_sendDataFrameHeader(u_conn, ctx, connect_proto, connect_proto_len);
+    flb_info("[out_ws_nats] oneeeeeeeee!");
+    ret = flb_io_net_write(u_conn, connect_proto, connect_proto_len, &bytes_sent);
+
+    // ret = flb_ws_sendDataFrameHeader(u_conn, ctx, NATS_CONNECT, sizeof(NATS_CONNECT) - 1);
+    // ret = flb_ws_sendDataFrameHeader(u_conn, ctx, "ping\r\n", sizeof("ping\r\n") - 1);
+    flb_info("[out_ws_nats] two!");
+    // ret = flb_io_net_write(u_conn, "ping\r\n", sizeof("ping\r\n"), &bytes_sent);
+    // ret = flb_io_net_write(u_conn, NATS_CONNECT, sizeof(NATS_CONNECT) - 1, &bytes_sent);
+    flb_info("[out_ws_nats] three");
+
     /* if (ret == -1) { */
+    /*     flb_error("[out_ws_nats] dataFrameHeader sent failed"); */
+    /*     ctx->handshake = 1; */
+    /*     if (json) { */
+    /*         flb_sds_destroy(json); */
+    /*     } */
     /*     flb_upstream_conn_release(u_conn); */
     /*     FLB_OUTPUT_RETURN(FLB_RETRY); */
     /* } */
+    flb_info("[out_ws_nats] ???!!!");
+    /* ret = flb_io_net_write(u_conn, NATS_CONNECT, sizeof(NATS_CONNECT) - 1, &bytes_sent); */
+    /* if (ret == -1) { */
+    /*     flb_error("[out_ws_nats] failed writing message body"); */
+    /*     ctx->handshake = 1; */
+    /*     if (json) { */
+    /*         flb_sds_destroy(json); */
+    /*     } */
+    /*     flb_upstream_conn_release(u_conn); */
+    /*     FLB_OUTPUT_RETURN(FLB_RETRY); */
+    /* } */
+    flb_info("[out_ws_nats] ???!!!!!!!!!!");
 
     /* Write message header */
     if (ctx->out_format == FLB_PACK_JSON_FORMAT_NONE) {
+        flb_info("here!!!!!!!!!!");
         ret = flb_ws_sendDataFrameHeader(u_conn, ctx, data, bytes);
     }
     else {
@@ -278,6 +322,7 @@ static void cb_ws_flush(const void *data, size_t bytes,
 
     /* Write message body*/
     if (ctx->out_format == FLB_PACK_JSON_FORMAT_NONE) {
+        flb_info("then here!!!!");
         ret = flb_io_net_write(u_conn, data, bytes, &bytes_sent);
     }
     else {
